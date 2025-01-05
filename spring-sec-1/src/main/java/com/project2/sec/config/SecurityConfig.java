@@ -18,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import com.project2.sec.filter.JwtFilter;
 
@@ -29,6 +30,8 @@ public class SecurityConfig {
 	
 	@Autowired
 	private UserDetailsService userDetailsService;
+	
+
 	
 	@Autowired
 	private JwtFilter jwtFilter;
@@ -61,6 +64,23 @@ public class SecurityConfig {
 				.build();
 	}
 	
+
+
+	@Bean
+	AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+		return config.getAuthenticationManager();
+	}
+	
+	@Bean
+	AuthenticationProvider authenticationProvider() {
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+		provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
+		provider.setUserDetailsService(userDetailsService);
+		
+		return provider;
+	}
+	
+	
 ////custom UserDetailsService //we changed with default // but data is hard coded here 
 //  @Bean
 //  UserDetailsService userDetailsService() {
@@ -80,19 +100,5 @@ public class SecurityConfig {
 //              .build();
 //      return new InMemoryUserDetailsManager(user1, user2);
 //  }
-
-	@Bean
-	AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-		return config.getAuthenticationManager();
-	}
-	
-	@Bean
-	AuthenticationProvider authenticationProvider() {
-		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-		provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
-		provider.setUserDetailsService(userDetailsService);
-		
-		return provider;
-	}
 
 }
