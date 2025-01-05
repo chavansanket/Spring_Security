@@ -17,6 +17,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.project2.sec.filter.JwtFilter;
 
 
 
@@ -27,21 +30,34 @@ public class SecurityConfig {
 	@Autowired
 	private UserDetailsService userDetailsService;
 	
+	@Autowired
+	private JwtFilter jwtFilter;
+	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		
 		return http
+				
 				//disable csrf
 				.csrf(customizer->customizer.disable())
+				
 				.authorizeHttpRequests(request->request
-						.requestMatchers("register", "login")
-						.permitAll()
-						.anyRequest().authenticated())
+						
+						.requestMatchers("/register", "/login").permitAll() //// Allow login without authentication
+						
+						.anyRequest().authenticated())  //// Require JWT for all other endpoints
+				
 				////form login
 //				http.formLogin(Customizer.withDefaults())
-				.httpBasic(Customizer.withDefaults())
+
+// enabling HTTP Basic Authentication allows requests to pass by supplying username and password in the Authorization header, but this conflicts with your intended JWT-only authentication mechanism.
+//				.httpBasic(Customizer.withDefaults())
+				
 				.sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))//suppose if there was a form login and if you tries from browser, 
-//				to do login, after login same page will come because no session is maintained 
+					//				to do login, after login same page will come because no session is maintained 
+				
+				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+				
 				.build();
 	}
 	
